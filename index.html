@@ -1,0 +1,203 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f1e8">
+  <title>DingleFork's Personal Homepage</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="site" id="site">
+  <header class="masthead">
+    <div class="stamp">DF<br><small>WEB</small></div>
+    <div>
+      <p class="kicker">PERSONAL HOMEPAGE · EST. 2003</p>
+      <h1>DingleFork's Personal Homepage</h1>
+      <p class="tagline">A small place for notes, files, and things worth keeping.</p>
+    </div>
+    <div class="counter">VISITORS<br><strong id="counter">000184</strong></div>
+  </header>
+
+  <nav class="nav" aria-label="Main navigation">
+    <button class="nav-link selected" data-page="home">Home</button>
+    <button class="nav-link" data-page="about">About Me</button>
+    <button class="nav-link" data-page="downloads">Downloads</button>
+    <button class="nav-link" data-page="guestbook">Guestbook</button>
+  </nav>
+
+  <div class="notice">★ WELCOME, INTERNET STRANGER! ★</div>
+
+  <main>
+    <section class="page active" id="page-home">
+      <div class="layout">
+        <article class="paper">
+          <h2>Hey there!</h2>
+          <p>Welcome to my little corner of the internet. I made this page to keep some notes, share a few files, and archive things I don't want to lose.</p>
+          <p>It's not much, but it's mine. Best viewed at 1024 × 768 with a snack nearby.</p>
+          <hr>
+          <h3>Latest updates</h3>
+          <ul class="updates">
+            <li><time>10/14/03</time> Added a new page. Finally!</li>
+            <li><time>10/11/03</time> Fixed the guestbook. Probably.</li>
+            <li><time>10/02/03</time> Welcome to my homepage!</li>
+          </ul>
+          <div class="construction">🚧 THIS SITE IS ALWAYS UNDER CONSTRUCTION 🚧</div>
+          <p class="small muted">If something looks broken, try refreshing. This page is old.</p>
+        </article>
+
+        <aside>
+          <div class="paper profile">
+            <h3>Webmaster</h3>
+            <div class="avatar">:)</div>
+            <p><b>DingleFork</b><br><span class="muted">amateur archivist</span></p>
+            <p class="small">Likes: old computers, rainy days, collecting things</p>
+          </div>
+
+          <div class="paper side-links">
+            <h3>Useful links</h3>
+            <a href="#" data-external>My favorite website</a>
+            <a href="#" data-external>Cool web rings</a>
+            <a href="#" data-external>Free pixel art</a>
+            <a href="#" id="backup-link">old backup directory</a>
+          </div>
+
+          <div class="paper status">
+            <h3>Site status</h3>
+            <p><span class="green-dot"></span> Everything is working!</p>
+            <p class="small muted">Last checked: <span id="last-checked">today</span></p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="page" id="page-about">
+      <article class="paper">
+        <h2>About Me</h2>
+        <p>Hi! You can call me DingleFork. This is where I put things I might need later.</p>
+        <p>I started this archive because I kept forgetting where I saved everything. There's a folder for notes, a folder for downloads, and a folder I should probably clean up.</p>
+        <p>My favorite number is <strong>7</strong>. No special reason.</p>
+        <p class="muted small">If you found this through a search engine, hello!</p>
+        <div class="margin-note">Remember to back up the backup.</div>
+      </article>
+    </section>
+
+    <section class="page" id="page-downloads">
+      <article class="paper">
+        <h2>Downloads &amp; old files</h2>
+        <p>Plain-text files from my computer. They're just text; nothing gets downloaded to your device.</p>
+
+        <div class="file-list">
+          <button class="file-row" data-file="readme">
+            <span class="file-icon">TXT</span>
+            <span><b>readme.txt</b><small>Welcome note · 1 KB</small></span>
+            <span>OPEN</span>
+          </button>
+          <button class="file-row" data-file="inventory">
+            <span class="file-icon">TXT</span>
+            <span><b>inventory.txt</b><small>Archive list · 2 KB</small></span>
+            <span>OPEN</span>
+          </button>
+          <button class="file-row" data-file="log">
+            <span class="file-icon">LOG</span>
+            <span><b>old_log.txt</b><small>Last modified: unknown</small></span>
+            <span>OPEN</span>
+          </button>
+        </div>
+
+        <div id="file-viewer" class="viewer hidden">
+          <div class="viewer-bar">
+            <span id="file-title">readme.txt</span>
+            <button id="close-file">[X]</button>
+          </div>
+          <pre id="file-content"></pre>
+        </div>
+      </article>
+    </section>
+
+    <section class="page" id="page-guestbook">
+      <article class="paper">
+        <h2>Guestbook</h2>
+        <p>Leave a note for the webmaster. Entries stay in this browser session only.</p>
+        <form id="guest-form">
+          <label for="guest-name">Name</label>
+          <input id="guest-name" maxlength="24" required placeholder="Your name">
+          <label for="guest-message">Message</label>
+          <textarea id="guest-message" maxlength="180" required placeholder="Say hello..."></textarea>
+          <button class="classic" type="submit">Sign guestbook</button>
+        </form>
+        <div id="guest-entries">
+          <div class="entry"><b>webmaster</b><span>10/14/03</span><p>Be nice! :)</p></div>
+          <div class="entry"><b>anonymous</b><span>10/13/03</span><p>Cool site.</p></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="page" id="page-backup">
+      <article class="paper">
+        <p class="kicker">BACKUP DIRECTORY · INDEX DISABLED</p>
+        <h2>old_backup/</h2>
+        <p class="muted">This directory was not meant to be linked from the homepage.</p>
+        <div class="directory">
+          <button data-secret-file="note">note_to_self.txt</button>
+          <button data-secret-file="transcript">visitor_transcript.log</button>
+          <button data-secret-file="index">index_old.html</button>
+          <button id="unlisted">[unlisted item]</button>
+        </div>
+        <div class="viewer hidden" id="backup-viewer"><pre></pre></div>
+        <p class="small muted">Some timestamps may be wrong. If you find a discrepancy, write it down.</p>
+      </article>
+    </section>
+
+    <section class="page" id="page-console">
+      <article class="paper">
+        <p class="kicker">LOCAL ARCHIVE CONSOLE · READ ONLY</p>
+        <h2>Archive console</h2>
+        <p>Type <code>help</code> to see available commands.</p>
+        <div class="console-output" id="console-output">DFA-03 console ready.<br>Type <b>help</b> for available commands.</div>
+        <form class="console-form" id="console-form">
+          <label for="command">&gt;</label>
+          <input id="command" autocomplete="off" spellcheck="false" aria-label="Console command">
+          <button type="submit">RUN</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="page" id="page-ending">
+      <article class="paper ending">
+        <p class="kicker">ARCHIVE CLOSED</p>
+        <h2 id="ending-title">END OF RECORD</h2>
+        <div id="ending-copy"></div>
+        <button class="classic" id="restart">Return to homepage</button>
+      </article>
+    </section>
+
+    <div class="footer-secret">
+      <button id="footer-mark" title="A tiny footer mark">© 2003 D.F.</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>Made with plain HTML, stubbornness, and too much free time.</p>
+    <p>Best viewed in a browser that still believes in guestbooks.</p>
+    <div class="badges">
+      <span>HANDMADE HTML</span>
+      <span>100% NOSTALGIA</span>
+      <span>NO TRACKING</span>
+    </div>
+  </footer>
+</div>
+
+<div class="overlay hidden" id="overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+  <div class="dialog">
+    <div class="dialog-head" id="overlay-title">SYSTEM MESSAGE</div>
+    <p id="overlay-copy"></p>
+    <button id="overlay-ok" class="classic">OK</button>
+  </div>
+</div>
+
+<div id="flash" class="flash" aria-hidden="true"></div>
+<script src="script.js"></script>
+</body>
+</html>
