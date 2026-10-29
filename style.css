@@ -8,6 +8,7 @@
   --red: #7b1717;
   --line: #c9c3b6;
   --muted: #777268;
+  --shadow: #0000000c;
 }
 
 * { box-sizing: border-box; }
@@ -109,8 +110,7 @@ h1 {
   font-size: 14px;
 }
 
-.nav-link:hover,
-.nav-link.selected {
+.nav-link:hover, .nav-link.selected {
   background: var(--paper);
   color: var(--red);
 }
@@ -269,7 +269,12 @@ hr {
 .file-row:last-child { border-bottom: 0; }
 .file-row:hover { background: #eee8d8; }
 .file-row > span:nth-child(2) { flex: 1; }
-.file-row small { display: block; color: var(--muted); margin-top: 4px; }
+
+.file-row small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
 
 .file-row > span:last-child {
   font: 11px "Courier New", monospace;
@@ -355,6 +360,11 @@ textarea {
 
 .entry p { margin: 6px 0 0; }
 
+.odd-entry {
+  font-family: "Courier New", monospace;
+  color: #765b56;
+}
+
 .directory {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -372,7 +382,9 @@ textarea {
 }
 
 .console-output {
-  min-height: 140px;
+  min-height: 180px;
+  max-height: 360px;
+  overflow: auto;
   padding: 14px;
   background: #eeeadd;
   border: 1px solid #b7b09e;
@@ -410,8 +422,26 @@ code {
   padding: 2px 4px;
 }
 
+.case-board {
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  background: #f4f0e5;
+}
+
+.case-board ul {
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
 .ending { min-height: 300px; }
 .ending h2 { color: var(--red); }
+
+.ending-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 .footer-secret {
   text-align: right;
@@ -492,7 +522,6 @@ footer p { margin: 5px; }
   100% { opacity: 0; }
 }
 
-/* The archive changes as the player discovers clues. */
 body.corrupted {
   background: #171513;
   color: #c8c0b2;
@@ -548,7 +577,19 @@ body.late .avatar::after {
 
 body.late .margin-note { color: #7c1919; }
 
-@media (max-width: 700px) {
+body.very-late .tagline {
+  font-family: "Courier New", monospace;
+  letter-spacing: 2px;
+}
+
+body.very-late .notice {
+  color: #fff;
+  background: #741414;
+}
+
+body.ending-reached .site { outline: 1px solid #741414; }
+
+@media(max-width:700px) {
   .site {
     margin: 0;
     border-left: 0;
@@ -577,6 +618,7 @@ body.late .margin-note { color: #7c1919; }
   }
 
   main { padding: 16px 12px 8px; }
+
   .layout { grid-template-columns: 1fr; }
 
   .layout aside {
@@ -585,14 +627,18 @@ body.late .margin-note { color: #7c1919; }
     gap: 10px;
   }
 
-  .layout aside .status { grid-column: 1 / -1; }
+  .layout aside .status { grid-column: 1/-1; }
+
   .paper { padding: 16px; }
+
   .directory { grid-template-columns: 1fr 1fr; }
+
   footer { padding: 14px; }
+
   .tagline { font-size: 13px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media(prefers-reduced-motion:reduce) {
   *, *::before, *::after {
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;
