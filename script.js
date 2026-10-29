@@ -5,26 +5,38 @@
   const $ = (s, root = document) => root.querySelector(s);
   const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 
-  const state = {
-    seen: new Set(),
-    solved: new Set(),
-    endings: new Set(),
-    strangeCount: 0,
-    guestbookRead: false,
+  const STORE = "dinglefork.casefile.v2";
+
+  const freshState = () => ({
+    seen: [],
+    solved: [],
+    endings: [],
     consoleUnlocked: false,
-    hiddenFound: false
-  };
+    backupUnlocked: false,
+    finalUnlocked: false,
+    strangeCount: 0,
+    guestbookRead: false
+  });
+
+  let state = freshState();
+
+  try {
+    state = {
+      ...state,
+      ...JSON.parse(localStorage.getItem(STORE) || "{}")
+    };
+  } catch (_) {}
 
   const files = {
     readme: {
       title: "readme.txt",
       text: `HELLO!
 
-Thanks for visiting my homepage.
-Everything here is normal and very much under control.
+Thanks for visiting my homepage. Everything here is normal and very much under control.
 
-If you find a file called 'old_log.txt', please don't edit it.
-I don't remember writing it, but it keeps coming back.
+If you find a file called old_log.txt, compare it with the calendar. One of them has been copied too many times.
+
+The first instruction is hiding in plain sight. Read the updates from top to bottom.
 
 - DingleFork`
     },
@@ -37,15 +49,20 @@ I don't remember writing it, but it keeps coming back.
 02. school notes (31)
 03. web scraps (7)
 04. visitor list (1)
+05. temporary files (0)
 
-NOTE: There should be six folders.
-NOTE: There are five folders.
-NOTE: Stop counting the folders.`
+There should be SIX folders. There are FIVE.
+
+The missing folder had hands but never held anything. It measured something that nobody could agree on.
+
+Do not count the files. Count the absent folder.`
     },
 
     log: {
       title: "old_log.txt",
-      text: `10/02/03  homepage created
+      text: `ARCHIVE LOG — COPIED FROM THE OLD MACHINE
+
+10/02/03  homepage created
 10/11/03  guestbook fixed
 10/14/03  backup completed
 10/14/03  backup completed
@@ -55,22 +72,36 @@ NOTE: Stop counting the folders.`
 10/15/03  visitor detected
 10/15/03  visitor detected
 
-There is no 10/15/03 entry in the calendar.
+The log claims three visitors arrived on the fifteenth. The guestbook says one of them was already here the day before.
 
-If you're reading this, the archive has started noticing you.`
+Compare the calendar. Repetition is not proof.`
+    },
+
+    calendar: {
+      title: "calendar.txt",
+      text: `OCTOBER 2003 — DINGLEFORK
+
+02 — homepage created
+11 — guestbook fixed
+14 — backup completed
+15 — [blank]  (this square has been rubbed thin)
+
+On the back, in pencil:
+"For the second lock, read the dates backwards. Not the digits. The order."
+
+The calendar is not a code by itself. Find what the log repeats first.`
     },
 
     note: {
       title: "note_to_self.txt",
       text: `NOTE TO SELF
 
-The old key is not a key.
-The date is not a date.
-The name is not a name.
+I hid the folder name in the inventory description.
+The first key is not a date.
 
-Count what is missing, not what is here.
+For the next key, take the guestbook claim that cannot be true. Find the visitor who appears twice: once in the log and once in the transcript. Their message tells you what to do with the calendar.
 
-Seven is the answer to a question nobody asked.`
+Seven is the answer to a question nobody asked. It is not a password.`
     },
 
     transcript: {
@@ -80,12 +111,14 @@ Seven is the answer to a question nobody asked.`
 VISITOR 001: hello, nice site
 VISITOR 002: where is the owner?
 VISITOR 003: why is my name in the source?
-VISITOR 004: I didn't type that
+VISITOR 004: There were only three of us yesterday.
 
-VISITOR 005: DingleFork, if this is a joke, stop.
+[THE FOLLOWING LINE IS IN A DIFFERENT TYPEFACE]
+VISITOR 004: READ THE DATES BACKWARDS
 
-[RECORD CONTINUES]
-VISITOR 006: you are reading this out of order`
+VISITOR 005: I didn't type that.
+
+The last visitor number does not match the guestbook. Do not trust the order this file is displayed in.`
     },
 
     index: {
@@ -95,13 +128,47 @@ VISITOR 006: you are reading this out of order`
 The path is made from three pieces:
 DINGLE / FORK / TOENAIL
 
-Do not put spaces between them.
-Do not search for the path on a search engine.
-The path only exists here.`
+Do not put spaces between them. This is not a URL. It is the name of the person the archive remembers.
+
+The console can only open a record after the first key is verified.`
+    },
+
+    receipt: {
+      title: "copy_receipt.txt",
+      text: `COPY REPORT / 10-15-03
+
+Original files: 4
+Copies made: 3
+Copies with matching timestamps: 3
+
+The original visitor record is missing. Three copies agree with each other, but all three were made from the same copy.
+
+If every witness repeats the same sentence, you have one witness—not three.`
     }
   };
 
-  function go(page) {
+  const save = () => {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(state));
+    } catch (_) {}
+  };
+
+  const has = id => state.solved.includes(id);
+
+  const add = id => {
+    if (!has(id)) state.solved.push(id);
+    save();
+    renderEvidence();
+    updateCorruption();
+  };
+
+  const seen = id => {
+    if (!state.seen.includes(id)) state.seen.push(id);
+    save();
+    updateCorruption();
+  };
+
+  const go = page => {
     $$(".page").forEach(p => {
       p.classList.toggle("active", p.id === `page-${page}`);
     });
@@ -111,124 +178,166 @@ The path only exists here.`
     });
 
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
 
-  function popup(message, title = "SYSTEM MESSAGE") {
+    if (page === "guestbook") {
+      state.guestbookRead = true;
+      seen("guestbook");
+    }
+
+    if (page === "downloads") seen("downloads");
+    if (page === "backup") seen("backup");
+    if (page === "console") seen("console");
+  };
+
+  const popup = (message, title = "SYSTEM MESSAGE") => {
     $("#overlay-title").textContent = title;
     $("#overlay-copy").textContent = message;
     $("#overlay").classList.remove("hidden");
-    $("#overlay-ok").focus();
-  }
+  };
 
-  $("#overlay-ok").addEventListener("click", () => {
-    $("#overlay").classList.add("hidden");
-  });
+  const printConsole = message => {
+    const out = $("#console-output");
+    out.textContent += `\n\n${message}`;
+    out.scrollTop = out.scrollHeight;
+  };
 
-  $("#overlay").addEventListener("click", e => {
-    if (e.target === $("#overlay")) {
-      $("#overlay").classList.add("hidden");
+  const renderEvidence = () => {
+    const list = $("#evidence-list");
+    if (!list) return;
+
+    list.replaceChildren();
+
+    const labels = {
+      clock: "Missing folder identified: CLOCK",
+      copies: "Duplicate log entries are copies, not witnesses",
+      reverse: "Transcript instruction verified: reverse the date order",
+      date: "Date sequence reconstructed: 14-11-02",
+      identity: "The archive's remembered name is DINGLEFORKTOENAIL"
+    };
+
+    const found = state.solved.filter(k => labels[k]);
+
+    if (!found.length) {
+      const li = document.createElement("li");
+      li.className = "muted";
+      li.textContent = "No verified evidence yet.";
+      list.append(li);
+      return;
     }
-  });
 
-  function showFile(key) {
-    const item = files[key];
-    if (!item) return;
+    found.forEach(k => {
+      const li = document.createElement("li");
+      li.textContent = labels[k];
+      list.append(li);
+    });
+  };
 
-    $("#file-title").textContent = item.title;
-    $("#file-content").textContent = item.text;
+  const updateCorruption = () => {
+    const n = state.solved.length + state.seen.length;
+
+    if (n >= 4) document.body.classList.add("corrupted");
+    if (n >= 8) document.body.classList.add("late");
+    if (n >= 11) document.body.classList.add("very-late");
+
+    if (n >= 5 && state.strangeCount === 0) {
+      state.strangeCount = 1;
+      save();
+    }
+  };
+
+  const revealBackup = () => {
+    state.backupUnlocked = true;
+    save();
+    go("backup");
+
+    popup(
+      "Directory index restored. The files disagree about what happened. Treat repeated testimony as a single source.",
+      "OLD_BACKUP/"
+    );
+  };
+
+  const openFile = key => {
+    const f = files[key];
+    if (!f) return;
+
+    $("#file-title").textContent = f.title;
+    $("#file-content").textContent = f.text;
     $("#file-viewer").classList.remove("hidden");
 
-    state.seen.add(key);
-    checkProgress();
+    seen(`file-${key}`);
 
-    if (key === "log" && state.strangeCount > 0) {
-      $("#file-content").textContent +=
-        "\n\nADDENDUM:\nYou have been here before. The counter remembers.";
+    if (key === "log") seen("log");
+    if (key === "calendar") seen("calendar");
+    if (key === "inventory") seen("inventory");
+  };
+
+  $$("[data-page]").forEach(b => {
+    b.addEventListener("click", () => go(b.dataset.page));
+  });
+
+  $$("[data-file]").forEach(b => {
+    b.addEventListener("click", () => openFile(b.dataset.file));
+  });
+
+  $("#close-file").addEventListener("click", () => {
+    $("#file-viewer").classList.add("hidden");
+  });
+
+  $("#backup-link").addEventListener("click", e => {
+    e.preventDefault();
+
+    if (state.backupUnlocked) {
+      go("backup");
+    } else {
+      popup(
+        "The server says this directory is not indexed. The updates might tell you what to inspect next.",
+        "404 — DIRECTORY NOT LISTED"
+      );
     }
-  }
-
-  $$(".nav-link").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const page = btn.dataset.page;
-      go(page);
-      state.seen.add(page);
-
-      if (page === "guestbook" && !state.guestbookRead) {
-        state.guestbookRead = true;
-        state.strangeCount++;
-
-        window.setTimeout(() => {
-          const entries = $("#guest-entries");
-
-          if (!$("#odd-entry", entries)) {
-            const odd = document.createElement("div");
-            odd.id = "odd-entry";
-            odd.className = "entry";
-
-            const name = document.createElement("b");
-            name.textContent = "DingleFork";
-
-            const date = document.createElement("span");
-            date.textContent = "10/15/03";
-
-            const msg = document.createElement("p");
-            msg.textContent =
-              "I don't remember signing this. Do you?";
-
-            odd.append(name, date, msg);
-            entries.prepend(odd);
-          }
-
-          corrupt(
-            "A new guestbook entry appeared while you were looking at the page."
-          );
-        }, 1800);
-      }
-
-      checkProgress();
-    });
   });
 
   $$("[data-external]").forEach(a => {
     a.addEventListener("click", e => {
       e.preventDefault();
       popup(
-        "That link doesn't work anymore. The internet was smaller back then."
+        "This link no longer exists. The webmaster never replaced it.",
+        "LINK ERROR"
       );
     });
   });
 
-  $("#backup-link").addEventListener("click", e => {
-    e.preventDefault();
-    state.seen.add("backup");
-    state.strangeCount++;
-    go("backup");
+  $$("[data-secret-file]").forEach(b => {
+    b.addEventListener("click", () => {
+      const key = b.dataset.secretFile;
+      const f = files[key];
 
-    corrupt(
-      "You found a directory that was not linked in the original menu."
-    );
+      if (!f) return;
 
-    checkProgress();
-  });
+      const viewer = $("#backup-viewer");
+      $("#backup-title").textContent = f.title;
+      $("#backup-viewer pre").textContent = f.text;
+      viewer.classList.remove("hidden");
 
-  $$("[data-file]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.file;
-      showFile(key);
-
-      if (key === "log" && !state.solved.has("log")) {
-        state.solved.add("log");
-
-        popup(
-          "Notice the impossible date: 10/15/03. Remember it.",
-          "FILE READ"
-        );
-      }
+      seen(`backup-${key}`);
     });
   });
 
-  $("#close-file").addEventListener("click", () => {
-    $("#file-viewer").classList.add("hidden");
+  $("#close-backup").addEventListener("click", () => {
+    $("#backup-viewer").classList.add("hidden");
+  });
+
+  $("#unlisted").addEventListener("click", () => {
+    if (!has("clock")) {
+      popup(
+        "ITEM LOCKED. The directory index is missing a folder. Identify it before opening the unlisted record.",
+        "ACCESS DENIED"
+      );
+    } else {
+      state.consoleUnlocked = true;
+      save();
+      go("console");
+      printConsole("UNLISTED RECORD FOUND. The archive console is now available.");
+    }
   });
 
   $("#guest-form").addEventListener("submit", e => {
@@ -245,400 +354,341 @@ The path only exists here.`
     const b = document.createElement("b");
     b.textContent = name;
 
-    const date = document.createElement("span");
-    date.textContent = "just now";
+    const span = document.createElement("span");
+    span.textContent = "just now";
 
     const p = document.createElement("p");
     p.textContent = message;
 
-    entry.append(b, date, p);
+    entry.append(b, span, p);
     $("#guest-entries").prepend(entry);
 
     $("#guest-name").value = "";
     $("#guest-message").value = "";
 
-    state.solved.add("guest");
+    popup(
+      "Entry saved in this browser only. It will not be sent to anyone.",
+      "GUESTBOOK"
+    );
+  });
 
-    if (/dingleforktoenail/i.test(message.replace(/\s/g, ""))) {
-      state.solved.add("name");
+  let typed = "";
 
-      popup(
-        "The guestbook accepted the name.\nIt should not have known what you meant.",
-        "ENTRY SAVED"
+  document.addEventListener("keydown", e => {
+    if (
+      e.ctrlKey ||
+      e.altKey ||
+      e.metaKey ||
+      e.target.matches("input,textarea")
+    ) return;
+
+    typed = (typed + e.key.toLowerCase()).slice(-24);
+
+    if (typed.endsWith("dinglefork")) {
+      state.consoleUnlocked = true;
+      save();
+      go("console");
+
+      printConsole(
+        "OWNER NAME ACCEPTED. Console mounted.\nThe owner name was not the first key."
       );
 
-      corrupt("A name has been spoken in the archive.");
-    } else {
-      popup("Thanks for signing the guestbook!");
+      typed = "";
     }
-
-    checkProgress();
-  });
-
-  $$("[data-secret-file]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.secretFile;
-      const viewer = $("#backup-viewer");
-
-      viewer.classList.remove("hidden");
-      $("pre", viewer).textContent = files[key].text;
-      state.seen.add(key);
-
-      if (key === "note") {
-        state.solved.add("seven");
-
-        popup(
-          "The note says to count what is missing. The inventory lists five folders, but claims there should be six. Look for the missing folder.",
-          "CLUE FOUND"
-        );
-      }
-
-      if (key === "transcript") {
-        state.solved.add("transcript");
-
-        popup(
-          "The visitor log says you're reading the records out of order. The date 10/15/03 may be a key, not a date.",
-          "CLUE FOUND"
-        );
-      }
-
-      if (key === "index") {
-        state.solved.add("path");
-
-        popup(
-          "Three pieces. No spaces. Keep the full name in mind.",
-          "CLUE FOUND"
-        );
-      }
-
-      checkProgress();
-    });
-  });
-
-  $("#unlisted").addEventListener("click", () => {
-    state.hiddenFound = true;
-    state.solved.add("unlisted");
-
-    $("#backup-viewer").classList.remove("hidden");
-
-    $("pre", $("#backup-viewer")).textContent =
-      `unlisted_item.dat
-
-DINGLEFORKTOENAIL
-
-This is not a password.
-It is a label.
-
-CONSOLE ROUTE: /archive-console
-ENTRY DATE: 10/15/03
-KEY: 0707`;
-
-    state.consoleUnlocked = true;
-
-    corrupt("A hidden file has been indexed.");
-
-    popup(
-      "Hidden item recovered.\nThe string is a label, and 0707 is the first key. Find the console.",
-      "UNLISTED FILE"
-    );
-
-    checkProgress();
   });
 
   $("#footer-mark").addEventListener("click", () => {
     state.strangeCount++;
+    save();
 
-    if (state.strangeCount < 2) {
+    if (state.strangeCount >= 4) {
+      document.body.classList.add("late");
+
       popup(
-        "Copyright 2003. All rights reserved.\n\nWhy are you clicking the footer?"
+        "Please stop checking the footer. There is nothing else down there.\n\n— D.F.",
+        "A NOTE FROM THE WEBMASTER"
       );
     } else {
-      state.solved.add("footer");
-
-      popup(
-        "D.F. = DingleFork.\nD.F.T. = DingleForkToenail.\n\nThe initials were never meant to be a clue.",
-        "FOOTER NOTE"
-      );
-
-      corrupt("The footer has stopped pretending to be decorative.");
+      popup("© 2003 D.F. All rights reserved.");
     }
-
-    checkProgress();
   });
 
-  const commandHelp = `COMMANDS
-help      list commands
-ls        list archive routes
-status    show recovered clues
-open      open hidden console record
-unlock    try a key (usage: unlock 0707)
-whoami    identify the current visitor
-clear     clear console output`;
-
-  const printConsole = text => {
-    $("#console-output").textContent = text;
-  };
+  const commands = [
+    "help",
+    "ls",
+    "status",
+    "open <filename>",
+    "answer <word or sequence>",
+    "evidence",
+    "clear",
+    "endings",
+    "reset"
+  ];
 
   $("#console-form").addEventListener("submit", e => {
     e.preventDefault();
 
     const raw = $("#command").value.trim();
-    const cmd = raw.toLowerCase();
-
     $("#command").value = "";
-    if (!cmd) return;
 
-    state.seen.add("console");
+    if (!raw) return;
+
+    const [head, ...rest] = raw.split(/\s+/);
+    const arg = rest.join(" ");
+    const cmd = head.toLowerCase();
 
     let result = "";
 
-    if (cmd === "help") {
-      result = commandHelp;
-    } else if (cmd === "ls") {
+    if (!state.consoleUnlocked) {
+      result = "CONSOLE NOT MOUNTED. Find the owner's name in the site's own records.";
+    }
+
+    else if (cmd === "help") {
       result =
-        "home.html\nabout.html\ndownloads/\nguestbook/\nold_backup/ [hidden]\narchive-console/ [unlisted]";
-    } else if (cmd === "status") {
+        "COMMANDS\n" +
+        commands.join("\n") +
+        "\n\nThe answer command checks the current lock. Answers must be supported by evidence.";
+    }
+
+    else if (cmd === "ls") {
       result =
-        `Files read: ${state.seen.size}\n` +
-        `Clues found: ${state.solved.size}\n` +
-        `Archive stability: ${state.strangeCount > 2 ? "POOR" : "NORMAL"}\n` +
-        "Owner status: NOT AVAILABLE";
-    } else if (cmd === "whoami") {
+        "ROOT: readme.txt inventory.txt old_log.txt calendar.txt\n" +
+        "BACKUP: hidden until the first lock is solved\n" +
+        "SYSTEM: console";
+    }
+
+    else if (cmd === "status") {
       result =
-        "VISITOR 007\n\nYou are not listed in the guestbook.\nYou are listed in the backup.";
-    } else if (cmd === "clear") {
-      result = "";
-    } else if (cmd === "open") {
-      if (state.consoleUnlocked || state.solved.has("path")) {
-        result =
-          "RECORD 07\nDINGLEFORKTOENAIL\n\n" +
-          "The owner did not disappear.\n" +
-          "The owner was split into three parts:\n" +
-          "DINGLE / FORK / TOENAIL\n\n" +
-          "If you can read this, the archive is waiting for a final choice.";
+        `Verified evidence: ${state.solved.length}\n` +
+        `Backup index: ${state.backupUnlocked ? "restored" : "missing"}\n` +
+        `Final record: ${state.finalUnlocked ? "available" : "sealed"}`;
+    }
 
-        state.solved.add("record");
+    else if (cmd === "open") {
+      const key = arg.toLowerCase().replace(/\.txt$|\.log$|\.html$/g, "");
+
+      const map = {
+        readme: "readme",
+        inventory: "inventory",
+        old_log: "log",
+        log: "log",
+        calendar: "calendar"
+      };
+
+      if (map[key]) {
+        openFile(map[key]);
+        result = `OPENED ${files[map[key]].title} in Downloads.`;
+        go("downloads");
+      }
+
+      else if (state.backupUnlocked && files[key]) {
+        const f = files[key];
+
+        $("#backup-title").textContent = f.title;
+        $("#backup-viewer pre").textContent = f.text;
+        $("#backup-viewer").classList.remove("hidden");
+
+        go("backup");
+        result = `OPENED ${f.title}.`;
+      }
+
+      else {
+        result = "FILE NOT FOUND OR DIRECTORY NOT INDEXED.";
+      }
+    }
+
+    else if (cmd === "answer") {
+      const a = arg.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+      if (!has("clock")) {
+        if (a === "clock") {
+          add("clock");
+          state.backupUnlocked = true;
+          save();
+
+          result =
+            "FIRST LOCK VERIFIED. Missing folder restored: old_backup/. Inspect every file, especially the copy receipt.";
+        } else {
+          result =
+            "INCORRECT. The inventory describes the missing folder without naming it directly.";
+        }
+      }
+
+      else if (!has("copies")) {
+        if (a === "one" || a === "1" || a === "onewitness") {
+          add("copies");
+
+          result =
+            "SOURCE CHECK PASSED. Three identical copies count as one witness. Now compare the transcript with the calendar.";
+        } else {
+          result =
+            "INCORRECT. How many independent witnesses are there if all copies came from the same copy?";
+        }
+      }
+
+      else if (!has("reverse")) {
+        if (a === "reverse" || a === "backwards") {
+          add("reverse");
+
+          result =
+            "INSTRUCTION VERIFIED. Read the three month/day pairs from the latest to the earliest: 10/14, 10/11, 10/02. Keep only the day numbers.";
+        } else {
+          result =
+            "INCORRECT. The transcript gives a direct instruction. Follow it literally.";
+        }
+      }
+
+      else if (!has("date")) {
+        if (a === "141102" || a === "14110203" || a === "1411022003") {
+          add("date");
+
+          result =
+            "DATE SEQUENCE ACCEPTED. The sequence is evidence, not the final password. Find what the old index says is the archive's remembered name.";
+        } else {
+          result =
+            "INCORRECT. Use the dates in reverse chronological order. Keep the day numbers only, with no punctuation.";
+        }
+      }
+
+      else if (!has("identity")) {
+        if (a === "dingleforktoenail") {
+          add("identity");
+          state.finalUnlocked = true;
+          save();
+
+          result =
+            "IDENTITY VERIFIED. The final record is available. Type: endings";
+        } else {
+          result =
+            "INCORRECT. The old index says the path has three pieces. Join them without spaces.";
+        }
+      }
+
+      else {
+        result = "All locks are already verified. Type endings to choose a record.";
+      }
+    }
+
+    else if (cmd === "evidence") {
+      result = state.solved.length
+        ? "VERIFIED: " + state.solved.join(", ")
+        : "No evidence verified yet.";
+    }
+
+    else if (cmd === "endings") {
+      if (!state.finalUnlocked) {
+        result = "FINAL RECORD SEALED. Verify all five evidence steps first.";
       } else {
-        result =
-          "ACCESS DENIED. The unlisted item has not been indexed.";
-      }
-    } else if (cmd === "unlock 0707") {
-      if (
-        state.solved.has("seven") ||
-        state.hiddenFound ||
-        state.seen.has("log")
-      ) {
-        state.consoleUnlocked = true;
-        state.solved.add("console-key");
-
-        result = "KEY ACCEPTED.\nConsole record available. Type: open";
-
-        corrupt("The console accepted a key.");
-      } else {
-        result =
-          "KEY REJECTED.\nFind the impossible date and the missing folder first.";
-      }
-    } else if (
-      cmd === "unlock 101503" ||
-      cmd === "unlock 10/15/03"
-    ) {
-      if (
-        state.solved.has("transcript") &&
-        state.solved.has("seven")
-      ) {
-        state.consoleUnlocked = true;
-        state.solved.add("date-key");
-
-        result = "DATE ACCEPTED.\nThe second lock is open. Type: open";
-      } else {
-        result =
-          "DATE REJECTED. You need the visitor transcript and the missing-folder clue.";
-      }
-    } else if (cmd.startsWith("unlock ")) {
-      result = "KEY REJECTED. Check the clues again.";
-    } else {
-      result = `UNKNOWN COMMAND: ${raw}\nType help.`;
-    }
-
-    printConsole(`> ${raw}\n${result}`);
-    checkProgress();
-  });
-
-  function checkProgress() {
-    const count = state.solved.size + state.seen.size;
-
-    if (count >= 3) {
-      document.body.classList.add("corrupted");
-    }
-
-    if (count >= 7) {
-      document.body.classList.add("late");
-    }
-
-    if (
-      state.solved.has("record") &&
-      state.solved.has("date-key")
-    ) {
-      if (!$("#final-route")) {
-        const btn = document.createElement("button");
-
-        btn.id = "final-route";
-        btn.className = "classic";
-        btn.textContent = "Open final record";
-
-        btn.addEventListener("click", showFinalChoice);
-
-        $("#page-console .paper").append(btn);
+        showEndings();
+        result = "Final record opened. Choose an ending on the page.";
       }
     }
-  }
 
-  function corrupt(message) {
-    state.strangeCount++;
-
-    document.body.classList.add("corrupted");
-
-    if (state.strangeCount >= 3) {
-      document.body.classList.add("late");
-    }
-
-    if (state.strangeCount === 2) {
-      $("#last-checked").textContent = "10/15/03";
-      $("#counter").textContent = "000007";
-      $("#site").setAttribute("data-observed", "true");
-    }
-
-    if (state.strangeCount >= 4) {
-      $("#counter").textContent = "000001";
-      $("#last-checked").textContent = "just now";
-    }
-
-    if (message && state.strangeCount === 1) {
-      window.setTimeout(() => popup(message, "ARCHIVE NOTICE"), 450);
-    }
-  }
-
-  function showFinalChoice() {
-    go("ending");
-
-    $("#ending-title").textContent = "THE LAST RECORD";
-    $("#ending-copy").innerHTML = "";
-
-    const p = document.createElement("p");
-
-    p.textContent =
-      "The archive is quiet now. Three pieces have become one name. You can close the record, leave the archive open, or erase the copy you found.";
-
-    $("#ending-copy").append(p);
-
-    const choices = [
-      [
-        "close",
-        "CLOSE THE ARCHIVE",
-        "You close the file. The homepage returns to normal, except the visitor counter now reads 000007. The archive is quiet, but not gone. ENDING A: CLOSED RECORD."
-      ],
-      [
-        "stay",
-        "LEAVE IT OPEN",
-        "You leave the console running. A new line appears: 'THANK YOU FOR KEEPING MY PLACE.' The page remains open for the next visitor. ENDING B: THE KEEPER."
-      ],
-      [
-        "erase",
-        "ERASE THE LOCAL COPY",
-        "The files disappear from the visible directory. The site looks normal again. In the footer, the initials have changed to D.F.T. ENDING C: CLEANUP."
-      ]
-    ];
-
-    choices.forEach(([key, label, text]) => {
-      const b = document.createElement("button");
-
-      b.className = "classic choice";
-      b.textContent = label;
-
-      b.addEventListener("click", () => finish(key, text));
-
-      $("#ending-copy").append(b);
-    });
-  }
-
-  function finish(key, text) {
-    state.endings.add(key);
-
-    $("#ending-copy").textContent = text;
-
-    $("#ending-title").textContent =
-      key === "close"
-        ? "ENDING A: CLOSED RECORD"
-        : key === "stay"
-        ? "ENDING B: THE KEEPER"
-        : "ENDING C: CLEANUP";
-
-    document.body.classList.toggle("late", key !== "close");
-  }
-
-  $("#restart").addEventListener("click", () => {
-    go("home");
-
-    popup(
-      "The homepage has been restored.\n\nSome things may still be different.",
-      "WELCOME BACK"
-    );
-  });
-
-  // Secret keyboard sequence: type dinglefork outside text fields.
-  let keyBuffer = "";
-
-  document.addEventListener("keydown", e => {
-    if (
-      ["INPUT", "TEXTAREA"].includes(
-        document.activeElement.tagName
-      )
-    ) {
+    else if (cmd === "clear") {
+      $("#console-output").textContent = "DFA-03 console ready.";
       return;
     }
 
-    keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-13);
-
-    if (keyBuffer.endsWith("dinglefork")) {
-      state.consoleUnlocked = true;
-      state.solved.add("name");
-
-      go("console");
-
-      printConsole(
-        "IDENTITY STRING ACCEPTED.\nTry: unlock 0707\n\nThe archive knows the name."
-      );
-
-      corrupt("A hidden keyboard route has opened.");
+    else if (cmd === "reset") {
+      if (confirm("Erase this browser's DingleFork investigation progress?")) {
+        localStorage.removeItem(STORE);
+        location.reload();
+      }
+      return;
     }
 
+    else {
+      result = "UNKNOWN COMMAND. Type help.";
+    }
+
+    printConsole(`> ${raw}\n${result}`);
+    save();
+    renderEvidence();
+    updateCorruption();
+  });
+
+  function showEndings() {
+    go("ending");
+
+    const section = $("#page-ending");
+
+    section.innerHTML = `
+      <article class="paper ending">
+        <p class="kicker">FINAL RECORD · SELECT ONE</p>
+        <h2>What should be preserved?</h2>
+        <p>The archive has recorded your findings. Choose what you believe should happen to the last copy.</p>
+
+        <div class="ending-options">
+          <button class="classic" data-ending="preserve">PRESERVE THE RECORD</button>
+          <button class="classic" data-ending="erase">ERASE THE RECORD</button>
+          <button class="classic" data-ending="publish">PUBLISH THE RECORD</button>
+        </div>
+
+        <div id="ending-result"></div>
+
+        <button class="classic" id="restart">Return to homepage</button>
+      </article>
+    `;
+
+    $$("[data-ending]", section).forEach(b => {
+      b.addEventListener("click", () => finish(b.dataset.ending));
+    });
+
+    $("#restart").addEventListener("click", () => go("home"));
+  }
+
+  function finish(kind) {
+    const endings = {
+      preserve: {
+        title: "ENDING 1: THE PRESERVATION",
+        text: "You kept the archive intact. The copies remain in their folders, each one insisting it is the original. A new file appears in the inventory: visitor_list (2)."
+      },
+
+      erase: {
+        title: "ENDING 2: THE CLEAN COPY",
+        text: "You removed the record from this browser. The homepage looks normal again. The visitor counter has not changed, but the site status now says: WAITING FOR THE NEXT VISITOR."
+      },
+
+      publish: {
+        title: "ENDING 3: THE PUBLIC MIRROR",
+        text: "You made the evidence public. The transcript is no longer alone. Somewhere, a new guestbook entry appears with no name and no date: 'There were only three of us yesterday.'"
+      }
+    };
+
+    state.endings.push(kind);
+    save();
+
+    $("#ending-result").innerHTML =
+      `<h3>${endings[kind].title}</h3><p>${endings[kind].text}</p>`;
+
+    document.body.classList.add("ending-reached");
+  }
+
+  $("#restart").addEventListener("click", () => go("home"));
+
+  $("#overlay-ok").addEventListener("click", () => {
+    $("#overlay").classList.add("hidden");
+  });
+
+  document.addEventListener("keydown", e => {
     if (e.key === "Escape") {
       $("#overlay").classList.add("hidden");
     }
   });
 
-  // Click the date after it changes to investigate the discrepancy.
-  $("#last-checked").addEventListener("click", () => {
-    state.solved.add("date");
+  $("#last-checked").textContent = "10/15/03";
 
-    popup(
-      "10/15/03 does not exist in the update list.\nTry entering 101503 at the console after finding the missing-folder clue.",
-      "DATE DISCREPANCY"
-    );
-  });
+  $("#counter").textContent = String(
+    184 + Math.min(999, state.seen.length * 3)
+  ).padStart(6, "0");
 
-  // Subtle status change after the visitor has explored.
-  window.setTimeout(() => {
-    if (!state.seen.size) return;
+  if (state.backupUnlocked) {
+    const l = $("#backup-link");
+    l.textContent = "old backup directory [restored]";
+  }
 
-    const status = $(".status p:first-of-type");
+  renderEvidence();
+  updateCorruption();
 
-    if (status && !document.body.classList.contains("late")) {
-      status.innerHTML =
-        '<span class="green-dot"></span> Everything is working. Probably.';
-    }
-  }, 18000);
-
-  // Decorative counter. No analytics or remote calls.
-  $("#counter").textContent = "000184";
+  // Typing the webmaster's name mounts the console.
 })();
