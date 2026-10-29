@@ -5,8 +5,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f4f1e8">
+  <meta name="description" content="DingleFork's personal homepage, last updated October 2003.">
   <title>DingleFork's Personal Homepage</title>
   <link rel="stylesheet" href="style.css">
+  <!-- The archive console opens when the webmaster name is typed without spaces. -->
 </head>
 <body>
 <div class="site" id="site">
@@ -27,7 +29,9 @@
     <button class="nav-link" data-page="guestbook">Guestbook</button>
   </nav>
 
-  <div class="notice">★ WELCOME, INTERNET STRANGER! ★</div>
+  <div class="notice">
+    <span>★</span> WELCOME, INTERNET STRANGER! <span>★</span>
+  </div>
 
   <main>
     <section class="page active" id="page-home">
@@ -39,9 +43,9 @@
           <hr>
           <h3>Latest updates</h3>
           <ul class="updates">
-            <li><time>10/14/03</time> Added a new page. Finally!</li>
-            <li><time>10/11/03</time> Fixed the guestbook. Probably.</li>
-            <li><time>10/02/03</time> Welcome to my homepage!</li>
+            <li><time>10/14/03</time> <span>Looked through the archive again.</span></li>
+            <li><time>10/11/03</time> <span>Only the old copies are behaving strangely.</span></li>
+            <li><time>10/02/03</time> <span>Go ahead and read the files if you want.</span></li>
           </ul>
           <div class="construction">🚧 THIS SITE IS ALWAYS UNDER CONSTRUCTION 🚧</div>
           <p class="small muted">If something looks broken, try refreshing. This page is old.</p>
@@ -104,6 +108,11 @@
             <span><b>old_log.txt</b><small>Last modified: unknown</small></span>
             <span>OPEN</span>
           </button>
+          <button class="file-row" data-file="calendar">
+            <span class="file-icon">TXT</span>
+            <span><b>calendar.txt</b><small>Personal calendar · 1 KB</small></span>
+            <span>OPEN</span>
+          </button>
         </div>
 
         <div id="file-viewer" class="viewer hidden">
@@ -119,17 +128,31 @@
     <section class="page" id="page-guestbook">
       <article class="paper">
         <h2>Guestbook</h2>
-        <p>Leave a note for the webmaster. Entries stay in this browser session only.</p>
+        <p>Leave a note for the webmaster. Entries stay in this browser only.</p>
+
         <form id="guest-form">
           <label for="guest-name">Name</label>
           <input id="guest-name" maxlength="24" required placeholder="Your name">
+
           <label for="guest-message">Message</label>
           <textarea id="guest-message" maxlength="180" required placeholder="Say hello..."></textarea>
+
           <button class="classic" type="submit">Sign guestbook</button>
         </form>
+
         <div id="guest-entries">
-          <div class="entry"><b>webmaster</b><span>10/14/03</span><p>Be nice! :)</p></div>
-          <div class="entry"><b>anonymous</b><span>10/13/03</span><p>Cool site.</p></div>
+          <div class="entry">
+            <b>webmaster</b><span>10/14/03</span>
+            <p>Be nice! :)</p>
+          </div>
+          <div class="entry">
+            <b>anonymous</b><span>10/13/03</span>
+            <p>Cool site.</p>
+          </div>
+          <div class="entry odd-entry">
+            <b>visitor_004</b><span>10/15/03</span>
+            <p>There were only three of us yesterday.</p>
+          </div>
         </div>
       </article>
     </section>
@@ -139,13 +162,23 @@
         <p class="kicker">BACKUP DIRECTORY · INDEX DISABLED</p>
         <h2>old_backup/</h2>
         <p class="muted">This directory was not meant to be linked from the homepage.</p>
+
         <div class="directory">
           <button data-secret-file="note">note_to_self.txt</button>
           <button data-secret-file="transcript">visitor_transcript.log</button>
           <button data-secret-file="index">index_old.html</button>
+          <button data-secret-file="receipt">copy_receipt.txt</button>
           <button id="unlisted">[unlisted item]</button>
         </div>
-        <div class="viewer hidden" id="backup-viewer"><pre></pre></div>
+
+        <div class="viewer hidden" id="backup-viewer">
+          <div class="viewer-bar">
+            <span id="backup-title">file</span>
+            <button id="close-backup">[X]</button>
+          </div>
+          <pre></pre>
+        </div>
+
         <p class="small muted">Some timestamps may be wrong. If you find a discrepancy, write it down.</p>
       </article>
     </section>
@@ -154,13 +187,24 @@
       <article class="paper">
         <p class="kicker">LOCAL ARCHIVE CONSOLE · READ ONLY</p>
         <h2>Archive console</h2>
-        <p>Type <code>help</code> to see available commands.</p>
-        <div class="console-output" id="console-output">DFA-03 console ready.<br>Type <b>help</b> for available commands.</div>
+        <p>Commands are documented in the archive. Use <code>help</code> if you need a reminder.</p>
+
+        <div class="console-output" id="console-output" aria-live="polite">DFA-03 console ready.
+Type help for available commands.</div>
+
         <form class="console-form" id="console-form">
           <label for="command">&gt;</label>
           <input id="command" autocomplete="off" spellcheck="false" aria-label="Console command">
           <button type="submit">RUN</button>
         </form>
+
+        <div id="case-board" class="case-board">
+          <h3>Investigation notes</h3>
+          <p class="small muted">Evidence you have verified appears here.</p>
+          <ul id="evidence-list">
+            <li class="muted">No verified evidence yet.</li>
+          </ul>
+        </div>
       </article>
     </section>
 
